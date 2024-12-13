@@ -64,4 +64,12 @@ async fn context_with_data() {
     });
 
     t1.await.unwrap();
+
+    let c2 = ctx.clone();
+    let t2 = tokio::spawn(async move {
+        let fut = time::sleep(time::Duration::from_secs(1));
+        c2.handle(fut).await.unwrap();
+    });
+
+    t2.await.unwrap();
 }
