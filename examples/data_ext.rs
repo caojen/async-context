@@ -11,6 +11,7 @@ use async_context::{Context, Timer, With};
 /// We shore a `User` in our context.
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct User {
     username: String,
     user_id: u64,
