@@ -4,6 +4,10 @@ This lib provide an trait `Context` and a `Timer` to control async function.
 
 It's based on `tokio`.
 
+[![Crates.io](https://img.shields.io/crates/v/context-async)](https://crates.io/crates/context-async)
+[![Documentation](https://docs.rs/context-async/badge.svg)](https://docs.rs/context-async)
+[![License](https://img.shields.io/crates/l/context-async)](LICENSE)
+
 ## Usage
 
 Add this lib as dependencies in `Cargo.toml`.
