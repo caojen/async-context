@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::time;
-use async_context::{Context, Error, TimeChecker, Timer, With};
+use context_async::{Context, Error, TimeChecker, Timer, With};
 
 #[tokio::test]
 async fn with_simple() {

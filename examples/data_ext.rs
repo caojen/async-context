@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time;
 use std::time::Duration;
 use tokio::sync::RwLock;
-use async_context::{Context, Timer, With};
+use context_async::{Context, Timer, With};
 
 /// In this lib, our Timer doesn't store any data.
 /// However, we usually need to share data with our context.
@@ -23,7 +23,7 @@ struct MyContext {
     user: Arc<RwLock<Option<User>>>, // use Arc to cheep clone. use RwLock to modify user.
 }
 
-#[async_context::async_trait] // re-export from async_context
+#[context_async::async_trait] // re-export from context_async
 impl Context for MyContext {
     fn timer(&self) -> Timer {
         self.timer.clone() // cheep clone

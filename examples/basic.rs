@@ -1,5 +1,5 @@
 use tokio::time;
-use async_context::{Error, Timer, With};
+use context_async::{Error, Timer, With};
 
 /// In this file, we send a HTTP GET request to https://www.example.com.
 /// We use context to handle slow network, and kill the request after 3 seconds.

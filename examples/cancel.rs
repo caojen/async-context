@@ -1,5 +1,5 @@
 use std::time;
-use async_context::{Context, Timer};
+use context_async::{Context, Timer};
 
 /// In this example, we spawn a few context from a root context, and show how `cancel` works.
 

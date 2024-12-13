@@ -1,5 +1,5 @@
 use tokio::time;
-use async_context::{Context, Error, TimeChecker, Timer};
+use context_async::{Context, Error, TimeChecker, Timer};
 
 #[tokio::test]
 async fn test_timer_deadline() {

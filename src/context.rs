@@ -36,7 +36,7 @@ pub trait Context: Clone + Send + Sync {
     /// # Example
     /// ```rust
     ///
-    /// use async_context::{Context, Timer};
+    /// use context_async::{Context, Timer};
     ///
     /// tokio_test::block_on(async {
     /// let ctx = Timer::background();
@@ -67,7 +67,7 @@ pub trait Context: Clone + Send + Sync {
     ///
     /// # Examples
     /// ```rust
-    /// use async_context::{Context, Timer};
+    /// use context_async::{Context, Timer};
     ///
     /// # tokio_test::block_on(async {
     ///  let ctx = Timer::background();
