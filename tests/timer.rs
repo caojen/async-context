@@ -134,5 +134,22 @@ async fn timer_handle_timeout_2() {
 
 #[tokio::test]
 async fn timer_partial_cancel() {
+    let timer = Timer::with_timeout(time::Duration::from_secs(6));
+    let t1 = timer.clone();
+    let t2 = timer.clone();
 
+    let t1 = tokio::spawn(async move {
+        t1.handle(tokio::time::sleep(time::Duration::from_secs(1))).await.unwrap();
+    });
+
+    let t2 = tokio::spawn(async move {
+        let err = t2.handle(tokio::time::sleep(time::Duration::from_secs(8))).await.err().unwrap();
+        assert_eq!(err, Error::ContextCancelled);
+    });
+
+    tokio::time::sleep(time::Duration::from_secs(3)).await;
+    timer.cancel().await;
+
+    t1.await.unwrap();
+    t2.await.unwrap();
 }

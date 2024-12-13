@@ -155,7 +155,7 @@ impl Timer {
         Self::from(inner)
     }
 
-    pub async fn cancel_receiver(&self) -> sync::broadcast::Receiver<()> {
+    async fn cancel_receiver(&self) -> sync::broadcast::Receiver<()> {
         self.inner.read().await.cancelled_receiver.resubscribe()
     }
 }
