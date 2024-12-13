@@ -11,13 +11,12 @@ use crate::Timer;
 /// # Examples
 /// ```
 /// use context_async::{Context, Timer};
-///
 /// async fn my_function() {}
 ///
-/// let timer = Timer::background(); // a new context without duration limit
-/// tokio::spawn(async move {
-///     timer.handle(my_function()).await.unwrap();
-/// });
+/// # tokio_test::block_on(async {
+/// let timer = Timer::background(); // a new context without duration limit///
+/// timer.handle(my_function()).await.unwrap();
+/// # });
 /// ```
 ///
 /// In addition to using `handle`, you can also handle it
@@ -25,15 +24,15 @@ use crate::Timer;
 ///
 /// ```
 /// use context_async::{With, Context, Timer};
-///
 /// async fn my_function() {}
 ///
 /// let timer = Timer::todo(); // same as background().
-///
-/// tokio::spawn(async move {
-///     let fut = my_function();
-///     fut.with(timer).await.unwrap();
-/// });
+/// # tokio_test::block_on(async {
+/// my_function()
+///     .with(timer)
+///     .await
+///     .unwrap();
+/// # });
 /// ```
 #[async_trait::async_trait]
 pub trait Context: Clone + Send + Sync {
