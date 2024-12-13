@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
     let response = reqwest::Client::new()
         .get(url)
         .send()
-        .with(timer.clone()) // clone:
+        .with(timer.clone()) // add our timer to request future.
         .await;
 
     match response {
