@@ -1,3 +1,4 @@
+use std::time;
 use async_context::{Context, Timer};
 
 /// In this example, we spawn a few context from a root context, and show how `cancel` works.
@@ -19,7 +20,7 @@ async fn main() {
 
     let t1 = root.spawn().await; // spawn a child context.
     let t1_to_cancel = t1.clone(); // t1 will be moved, so the clone it for cancel.
-    let t11 = t1.spawn().await; // spawn a child context of t1.
+    let t11 = t1.spawn_with_timeout(time::Duration::from_secs(5)).await; // spawn a child context of t1.
     let t11_to_cancel = t11.clone();
 
     let j1 = tokio::spawn(async move {
