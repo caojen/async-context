@@ -17,6 +17,7 @@ async fn main() -> anyhow::Result<()> {
         .with(timer.clone()) // add our timer to request future.
         .await;
 
+    #[allow(unreachable_patterns)]
     match response {
         Ok(Ok(response)) => println!("successfully request: {:?}", response),
         Ok(Err(err)) => println!("request error from reqwest: {:?}", err),
