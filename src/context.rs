@@ -84,18 +84,3 @@ pub trait Context: Clone {
         self.timer().handle(fut).await
     }
 }
-
-#[async_trait::async_trait]
-impl<T: Context> Context for &T {
-    fn timer(&self) -> Timer {
-        (*self).timer()
-    }
-
-    async fn spawn(&self) -> Self {
-        todo!()
-    }
-
-    async fn spawn_with_timeout(&self, timeout: time::Duration) -> Self {
-        todo!()
-    }
-}
