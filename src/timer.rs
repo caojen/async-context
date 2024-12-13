@@ -118,8 +118,11 @@ impl Context for Timer {
             .map(time::sleep_until)
             .map(Box::pin);
 
+        let mut cancel_receiver = self.cancel_receiver().await;
+        let cancel_receiver_fut = cancel_receiver.recv();
+
         let task = Task {
-            cancel_receiver: self.cancel_receiver().await,
+            cancel_receiver: Box::pin(cancel_receiver_fut),
             sleep,
             fut: Box::pin(fut),
         };
@@ -161,9 +164,9 @@ impl Timer {
 }
 
 struct Task<'a, Output> {
-    cancel_receiver: sync::broadcast::Receiver<()>,
+    fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>,
     sleep: Option<Pin<Box<Sleep>>>,
-    fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>
+    cancel_receiver: Pin<Box<dyn Future<Output = Result<(), sync::broadcast::error::RecvError>> + Send + Sync + 'a>>,
 }
 
 impl<'a, Output> Future for Task<'a, Output> {
@@ -178,7 +181,11 @@ impl<'a, Output> Future for Task<'a, Output> {
             }
         }
 
-        if let Poll::Ready(_) = pin!(this.cancel_receiver.recv()).poll(cx) {
+        if let Poll::Ready(cancel_result) = pin!(&mut this.cancel_receiver).poll(cx) {
+            if let Err(e) = cancel_result {
+                println!("error when RecvError: {:?}", e);
+            }
+
             return Poll::Ready(Err(Error::ContextCancelled));
         }
 

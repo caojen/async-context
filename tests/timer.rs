@@ -1,6 +1,20 @@
 use tokio::time;
 use async_context::{Context, Error, Timer};
 
+struct TimeChecker(time::Instant);
+
+impl TimeChecker {
+    pub fn new() -> Self {
+        Self(time::Instant::now())
+    }
+
+    pub fn not_exceed(&self, duration: time::Duration) -> bool {
+        let diff = time::Instant::now() - self.0;
+
+        diff < duration
+    }
+}
+
 #[tokio::test]
 async fn test_timer_deadline() {
     let timer = Timer::background();
@@ -106,15 +120,19 @@ async fn timer_handle_simple() {
 
 #[tokio::test]
 async fn timer_handle_timeout() {
+    let tc = TimeChecker::new();
     let timer = Timer::with_timeout(time::Duration::from_secs(1));
     let err = timer.handle(tokio::time::sleep(time::Duration::from_secs(10))).await
         .err().unwrap();
 
     assert_eq!(err, Error::ContextTimeout);
+    assert!(tc.not_exceed(time::Duration::from_millis(1300)));
 }
 
 #[tokio::test]
 async fn timer_handle_timeout_2() {
+    let tc = TimeChecker::new();
+
     let timer = Timer::with_timeout(time::Duration::from_secs(4));
     let t1 = timer.clone();
     let t2 = timer.clone();
@@ -130,10 +148,14 @@ async fn timer_handle_timeout_2() {
 
     t1.await.unwrap();
     t2.await.unwrap();
+
+    assert!(tc.not_exceed(time::Duration::from_millis(4300)));
 }
 
 #[tokio::test]
 async fn timer_partial_cancel() {
+    let tc = TimeChecker::new();
+
     let timer = Timer::with_timeout(time::Duration::from_secs(6));
     let t1 = timer.clone();
     let t2 = timer.clone();
@@ -152,4 +174,6 @@ async fn timer_partial_cancel() {
 
     t1.await.unwrap();
     t2.await.unwrap();
+
+    assert!(tc.not_exceed(time::Duration::from_millis(3300)));
 }
