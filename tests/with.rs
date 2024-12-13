@@ -29,6 +29,8 @@ struct DataContext {
 
 #[async_trait::async_trait]
 impl Context for DataContext {
+    type SubContext = Self;
+    
     fn timer(&self) -> Timer {
         self.timer.clone()
     }

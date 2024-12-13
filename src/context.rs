@@ -121,18 +121,18 @@ pub trait Context: Clone + Send + Sync {
 }
 
 #[async_trait::async_trait]
-impl<T: Context<SubContext = T>> Context for &T {
-    type SubContext = T;
+impl<T: Context> Context for &T {
+    type SubContext = T::SubContext;
 
     fn timer(&self) -> Timer {
         (*self).timer()
     }
 
-    async fn spawn(&self) -> Self::SubContext {
+    async fn spawn(&self) -> T::SubContext {
         (*self).spawn().await
     }
 
-    async fn spawn_with_timeout(&self, timeout: Duration) -> Self::SubContext {
+    async fn spawn_with_timeout(&self, timeout: Duration) -> T::SubContext {
         (*self).spawn_with_timeout(timeout).await
     }
 }
