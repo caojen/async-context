@@ -8,6 +8,8 @@ pub use context::*;
 pub use error::*;
 pub use with::*;
 
+pub use async_trait::async_trait;
+
 pub struct TimeChecker(tokio::time::Instant);
 
 impl Default for TimeChecker {

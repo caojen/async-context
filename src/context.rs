@@ -3,7 +3,7 @@ use tokio::time;
 use crate::Timer;
 
 #[async_trait::async_trait]
-pub trait Context: Clone {
+pub trait Context: Clone + Send + Sync {
     /// return the basic [`Timer`].
     fn timer(&self) -> Timer;
 
