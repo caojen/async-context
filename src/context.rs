@@ -1,5 +1,5 @@
 use std::future::Future;
-use std::time;
+use tokio::time;
 use crate::Timer;
 
 #[async_trait::async_trait]

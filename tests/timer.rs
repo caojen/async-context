@@ -1,5 +1,5 @@
-use std::time;
-use async_context::{Context, Timer};
+use tokio::time;
+use async_context::{Context, Error, Timer};
 
 #[tokio::test]
 async fn test_timer_deadline() {
@@ -98,3 +98,36 @@ async fn test_timer_timeout() {
     assert!(child.is_timeout().await);
 }
 
+#[tokio::test]
+async fn timer_handle_simple() {
+    let timer = Timer::todo();
+    timer.handle(tokio::time::sleep(tokio::time::Duration::from_secs(1))).await.unwrap();
+}
+
+#[tokio::test]
+async fn timer_handle_timeout() {
+    let timer = Timer::with_timeout(time::Duration::from_secs(1));
+    let err = timer.handle(tokio::time::sleep(tokio::time::Duration::from_secs(10))).await
+        .err().unwrap();
+
+    assert_eq!(err, Error::ContextTimeout);
+}
+
+#[tokio::test]
+async fn timer_handle_timeout_2() {
+    let timer = Timer::with_timeout(time::Duration::from_secs(4));
+    let t1 = timer.clone();
+    let t2 = timer.clone();
+
+    let t1 = tokio::spawn(async move {
+        t1.handle(tokio::time::sleep(tokio::time::Duration::from_secs(2))).await.unwrap();
+    });
+
+    let t2 = tokio::spawn(async move {
+        let err = t2.handle(tokio::time::sleep(tokio::time::Duration::from_secs(10))).await.err().unwrap();
+        assert_eq!(err, Error::ContextTimeout);
+    });
+
+    t1.await.unwrap();
+    t2.await.unwrap();
+}

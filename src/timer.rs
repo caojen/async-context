@@ -2,20 +2,37 @@ use std::future::Future;
 use std::pin::{Pin, pin};
 use std::sync::Arc;
 use std::task::Poll;
-use std::time;
+use tokio::{sync, time};
 use tokio::sync::RwLock;
-use crate::Context;
+use tokio::time::Sleep;
+use crate::{Context, Error};
 
 #[derive(Debug, Clone, Default)]
 pub struct Timer {
     inner: Arc<RwLock<Inner>>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Inner {
     expire_at: Option<time::Instant>,
     cancelled: bool,
+    cancelled_sender: sync::broadcast::Sender<()>,
+    cancelled_receiver: sync::broadcast::Receiver<()>,
     childs: Vec<Timer>,
+}
+
+impl Default for Inner {
+    fn default() -> Self {
+        let (sender, receiver) = sync::broadcast::channel(32);
+
+        Self {
+            expire_at: None,
+            cancelled: false,
+            cancelled_sender: sender,
+            cancelled_receiver: receiver,
+            childs: Default::default(),
+        }
+    }
 }
 
 #[async_trait::async_trait]
@@ -31,21 +48,23 @@ impl Context for Timer {
 
     async fn cancel(&self) {
         let mut inner = self.inner.write().await;
+        if !inner.cancelled {
+            inner.cancelled = true;
+            let _ = inner.cancelled_sender.send(());
 
-        inner.cancelled = true;
-        for child in &mut inner.childs {
-            child.cancel().await;
+            for child in &inner.childs {
+                child.cancel().await;
+            }
         }
     }
 
     async fn is_cancelled(&self) -> bool {
-        self.inner.read().await.cancelled
+       self.inner.read().await.cancelled
     }
 
     async fn is_timeout(&self) -> bool {
-        let inner = self.inner.read().await;
-
-        inner.expire_at.is_some_and(|expire_at| expire_at < time::Instant::now())
+        self.inner.read().await.expire_at
+            .is_some_and(|expire_at| expire_at < time::Instant::now())
     }
 
     async fn spawn(&self) -> Self {
@@ -53,8 +72,7 @@ impl Context for Timer {
 
         let child = Inner {
             expire_at: inner.expire_at,
-            cancelled: inner.cancelled,
-            childs: Default::default(),
+            ..Default::default()
         };
 
         let child_timer = Self::from(child);
@@ -79,8 +97,7 @@ impl Context for Timer {
 
         let child = Inner {
             expire_at: child_expire_at,
-            cancelled: inner.cancelled,
-            childs: Default::default(),
+            ..Default::default()
         };
 
         let child_timer = Self::from(child);
@@ -93,8 +110,17 @@ impl Context for Timer {
     where
         Fut: Future<Output = Output> + Send + Sync + 'a
     {
+        if self.is_cancelled().await {
+            return Err(Error::ContextCancelled);
+        }
+
+        let sleep = self.deadline().await
+            .map(time::sleep_until)
+            .map(Box::pin);
+
         let task = Task {
-            timer: self.clone(),
+            cancel_receiver: self.cancel_receiver().await,
+            sleep,
             fut: Box::pin(fut),
         };
 
@@ -123,42 +149,48 @@ impl Timer {
     pub fn with_timeout(timeout: time::Duration) -> Self {
         let inner = Inner {
             expire_at: Some(time::Instant::now() + timeout),
-            cancelled: false,
-            childs: Default::default(),
+            ..Default::default()
         };
 
         Self::from(inner)
     }
+
+    pub async fn cancel_receiver(&self) -> sync::broadcast::Receiver<()> {
+        self.inner.read().await.cancelled_receiver.resubscribe()
+    }
 }
 
 struct Task<'a, Output> {
-    timer: Timer,
+    cancel_receiver: sync::broadcast::Receiver<()>,
+    sleep: Option<Pin<Box<Sleep>>>,
     fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>
 }
 
 impl<'a, Output> Future for Task<'a, Output> {
     type Output = crate::Result<Output>;
 
-    fn poll(mut self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
-        // Check `is_cancelled` and `is_timeout`
+    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+        let this = self.get_mut();
 
-        match pin!(self.timer.is_timeout()).poll(cx) {
-            Poll::Pending => return Poll::Pending,
-            Poll::Ready(is_timeout) => if is_timeout {
-                return Poll::Ready(Err(crate::Error::ContextTimeout));
+        if let Some(sleep) = this.sleep.as_mut() {
+            if let Poll::Ready(_) = pin!(sleep).poll(cx) {
+                return Poll::Ready(Err(Error::ContextTimeout));
             }
         }
 
-        match pin!(self.timer.is_cancelled()).poll(cx) {
-            Poll::Pending => return Poll::Pending,
-            Poll::Ready(is_cancelled) => if is_cancelled {
-                return Poll::Ready(Err(crate::Error::ContextCancelled));
-            }
+        if let Poll::Ready(_) = pin!(this.cancel_receiver.recv()).poll(cx) {
+            return Poll::Ready(Err(Error::ContextCancelled));
         }
 
-        match self.fut.as_mut().poll(cx) {
-            Poll::Pending => Poll::Pending,
-            Poll::Ready(output) => Poll::Ready(Ok(output)),
+        match this.fut.as_mut().poll(cx) {
+            Poll::Pending => {
+                cx.waker().wake_by_ref();
+                Poll::Pending
+            },
+            Poll::Ready(output) => {
+                println!("fut ready");
+                Poll::Ready(Ok(output))
+            },
         }
     }
 }
