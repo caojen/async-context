@@ -48,10 +48,11 @@ async fn main() {
 
 `Timer` and `Context` implements `Clone`, which creates a new `Context` (same as itself).
 
-`Timer` and `Context` can spawn children contexts. And ensure the following conditions are met:
+`Timer` and `Context` can spawn children contexts, and ensure the following conditions are met:
 1. The life cycle of the child context will not exceed the parent context;
 2. If the parent context is cancelled, all child contexts will be cancelled.
 3. The cancellation of the child context will be chained to all child contexts, but will not affect the parent context.
 
 for more information, see examples or visit the documentation.
+
 [documentation](https://docs.rs/context-async/latest/context_async/)
