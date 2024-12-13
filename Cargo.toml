@@ -7,6 +7,7 @@ authors = ["caojen <caojen@gmail.com>"]
 resolver = "2"
 keywords = ["context", "async"]
 license = "MIT"
+repository = "https://github.com/caojen/async-context"
 
 [dependencies]
 async-trait = { version = "0.1" }
