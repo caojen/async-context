@@ -1,19 +1,5 @@
 use tokio::time;
-use async_context::{Context, Error, Timer};
-
-struct TimeChecker(time::Instant);
-
-impl TimeChecker {
-    pub fn new() -> Self {
-        Self(time::Instant::now())
-    }
-
-    pub fn not_exceed(&self, duration: time::Duration) -> bool {
-        let diff = time::Instant::now() - self.0;
-
-        diff < duration
-    }
-}
+use async_context::{Context, Error, TimeChecker, Timer};
 
 #[tokio::test]
 async fn test_timer_deadline() {
