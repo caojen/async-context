@@ -75,25 +75,25 @@ async fn test_timer_timeout() {
     let timer = Timer::with_timeout(time::Duration::from_secs(1));
     assert!(!timer.is_timeout().await);
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    tokio::time::sleep(time::Duration::from_secs(2)).await;
     assert!(timer.is_timeout().await);
 
     // check child timeout...
     let timer = Timer::with_timeout(time::Duration::from_secs(10));
     let child = timer.spawn_with_timeout(time::Duration::from_secs(1)).await;
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    tokio::time::sleep(time::Duration::from_secs(2)).await;
     assert!(!timer.is_timeout().await);
     assert!(child.is_timeout().await);
 
     let timer = Timer::with_timeout(time::Duration::from_secs(5));
     let child = timer.spawn_with_timeout(time::Duration::from_secs(10)).await;
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    tokio::time::sleep(time::Duration::from_secs(2)).await;
     assert!(!timer.is_timeout().await);
     assert!(!child.is_timeout().await);
 
-    tokio::time::sleep(tokio::time::Duration::from_secs(4)).await;
+    tokio::time::sleep(time::Duration::from_secs(4)).await;
     assert!(timer.is_timeout().await);
     assert!(child.is_timeout().await);
 }
@@ -101,13 +101,13 @@ async fn test_timer_timeout() {
 #[tokio::test]
 async fn timer_handle_simple() {
     let timer = Timer::todo();
-    timer.handle(tokio::time::sleep(tokio::time::Duration::from_secs(1))).await.unwrap();
+    timer.handle(tokio::time::sleep(time::Duration::from_secs(1))).await.unwrap();
 }
 
 #[tokio::test]
 async fn timer_handle_timeout() {
     let timer = Timer::with_timeout(time::Duration::from_secs(1));
-    let err = timer.handle(tokio::time::sleep(tokio::time::Duration::from_secs(10))).await
+    let err = timer.handle(tokio::time::sleep(time::Duration::from_secs(10))).await
         .err().unwrap();
 
     assert_eq!(err, Error::ContextTimeout);
@@ -120,14 +120,19 @@ async fn timer_handle_timeout_2() {
     let t2 = timer.clone();
 
     let t1 = tokio::spawn(async move {
-        t1.handle(tokio::time::sleep(tokio::time::Duration::from_secs(2))).await.unwrap();
+        t1.handle(tokio::time::sleep(time::Duration::from_secs(2))).await.unwrap();
     });
 
     let t2 = tokio::spawn(async move {
-        let err = t2.handle(tokio::time::sleep(tokio::time::Duration::from_secs(10))).await.err().unwrap();
+        let err = t2.handle(tokio::time::sleep(time::Duration::from_secs(10))).await.err().unwrap();
         assert_eq!(err, Error::ContextTimeout);
     });
 
     t1.await.unwrap();
     t2.await.unwrap();
+}
+
+#[tokio::test]
+async fn timer_partial_cancel() {
+
 }

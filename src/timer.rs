@@ -184,11 +184,9 @@ impl<'a, Output> Future for Task<'a, Output> {
 
         match this.fut.as_mut().poll(cx) {
             Poll::Pending => {
-                cx.waker().wake_by_ref();
                 Poll::Pending
             },
             Poll::Ready(output) => {
-                println!("fut ready");
                 Poll::Ready(Ok(output))
             },
         }
