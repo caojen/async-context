@@ -2,6 +2,39 @@ use std::future::Future;
 use tokio::time;
 use crate::Timer;
 
+/// The [`Context`] trait defines the required methods for `Context`.
+/// It can define a duration, be cancellable, and immediately cancel
+/// async functions if the processing time exceeds the allowed
+/// duration without being cancelled. Additionally, the `Context`
+/// can spawn child contexts.
+///
+/// # Examples
+/// ```
+/// use context_async::{Context, Timer};
+///
+/// async fn my_function() {}
+///
+/// let timer = Timer::background(); // a new context without duration limit
+/// tokio::spawn(async move {
+///     timer.handle(my_function()).await.unwrap();
+/// });
+/// ```
+///
+/// In addition to using `handle`, you can also handle it
+/// with the `future.with()` method by simply importing the `With` trait.
+///
+/// ```
+/// use context_async::{With, Context, Timer};
+///
+/// async fn my_function() {}
+///
+/// let timer = Timer::todo(); // same as background().
+///
+/// tokio::spawn(async move {
+///     let fut = my_function();
+///     fut.with(timer).await.unwrap();
+/// });
+/// ```
 #[async_trait::async_trait]
 pub trait Context: Clone + Send + Sync {
     /// return the basic [`Timer`].

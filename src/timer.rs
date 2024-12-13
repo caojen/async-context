@@ -7,6 +7,7 @@ use tokio::sync::RwLock;
 use tokio::time::Sleep;
 use crate::{Context, Error};
 
+/// The [`Timer`] structure is the default [`Context`].
 #[derive(Debug, Clone, Default)]
 pub struct Timer {
     inner: Arc<RwLock<Inner>>,
@@ -138,16 +139,19 @@ impl From<Inner> for Timer {
 }
 
 impl Timer {
+    /// Create a default, independent timer with no time duration limit.
     #[inline]
     pub fn background() -> Self {
         Self::default()
     }
 
+    /// Create a default, independent timer with no time duration limit.
     #[inline]
     pub fn todo() -> Self {
         Self::default()
     }
 
+    /// Specify the maximum execution duration for the `Timer`.
     #[inline]
     pub fn with_timeout(timeout: time::Duration) -> Self {
         let inner = Inner {
