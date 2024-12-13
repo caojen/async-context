@@ -176,7 +176,6 @@ where
     CErr: ::std::error::Error,
     CFut: Future<Output = Result<(), CErr>> + Send,
 {
-    // fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>,
     fut: Pin<Box<Fut>>,
     sleep: Option<Pin<Box<Sleep>>>,
     cancel_receiver: Pin<Box<CFut>>,
