@@ -176,7 +176,7 @@ impl<'a, Output> Future for Task<'a, Output> {
         let this = self.get_mut();
 
         if let Some(sleep) = this.sleep.as_mut() {
-            if let Poll::Ready(_) = pin!(sleep).poll(cx) {
+            if pin!(sleep).poll(cx).is_ready() {
                 return Poll::Ready(Err(Error::ContextTimeout));
             }
         }

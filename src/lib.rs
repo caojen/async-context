@@ -10,6 +10,12 @@ pub use with::*;
 
 pub struct TimeChecker(tokio::time::Instant);
 
+impl Default for TimeChecker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TimeChecker {
     pub fn new() -> Self {
         Self(tokio::time::Instant::now())
