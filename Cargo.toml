@@ -11,7 +11,7 @@ repository = "https://github.com/caojen/async-context"
 
 [dependencies]
 async-trait = { version = "0.1" }
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "1", features = ["sync", "time"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
