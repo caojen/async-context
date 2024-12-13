@@ -109,7 +109,7 @@ impl Context for Timer {
 
     async fn handle<'a, Fut, Output>(&self, fut: Fut) -> crate::Result<Output>
     where
-        Fut: Future<Output = Output> + Send + Sync + 'a
+        Fut: Future<Output = Output> + Send + 'a
     {
         if self.is_cancelled().await {
             return Err(Error::ContextCancelled);
@@ -167,13 +167,20 @@ impl Timer {
     }
 }
 
-struct Task<'a, Output> {
-    fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>,
+struct Task<'a, Output, Fut>
+where
+    Fut: Future<Output = Output> + Send + 'a,
+{
+    // fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>,
+    fut: Pin<Box<Fut>>,
     sleep: Option<Pin<Box<Sleep>>>,
     cancel_receiver: Pin<Box<dyn Future<Output = Result<(), sync::broadcast::error::RecvError>> + Send + Sync + 'a>>,
 }
 
-impl<'a, Output> Future for Task<'a, Output> {
+impl<'a, Output, Fut> Future for Task<'a, Output, Fut>
+where
+    Fut: Future<Output = Output> + Send + 'a,
+{
     type Output = crate::Result<Output>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {

@@ -111,7 +111,7 @@ pub trait Context: Clone + Send + Sync {
     /// ```
     async fn handle<'a, Fut, Output>(&self, fut: Fut) -> crate::Result<Output>
     where
-        Fut: Future<Output = Output> + Send + Sync + 'a
+        Fut: Future<Output = Output> + Send + 'a
     {
         self.timer().handle(fut).await
     }
