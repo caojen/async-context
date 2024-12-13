@@ -25,6 +25,8 @@ struct MyContext {
 
 #[context_async::async_trait] // re-export from context_async
 impl Context for MyContext {
+    type SubContext = Self;
+    
     fn timer(&self) -> Timer {
         self.timer.clone() // cheep clone
     }

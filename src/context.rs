@@ -37,6 +37,8 @@ use crate::Timer;
 /// ```
 #[async_trait::async_trait]
 pub trait Context: Clone + Send + Sync {
+    type SubContext: Context;
+
     /// return the basic [`Timer`].
     fn timer(&self) -> Timer;
 
@@ -83,7 +85,7 @@ pub trait Context: Clone + Send + Sync {
     /// });
     ///
     /// ```
-    async fn spawn(&self) -> Self;
+    async fn spawn(&self) -> Self::SubContext;
 
     /// spawn a new child context, with a new timeout parameter.
     ///
@@ -94,7 +96,7 @@ pub trait Context: Clone + Send + Sync {
     ///
     /// # Note
     /// see [`Self::spawn`] for more examples.
-    async fn spawn_with_timeout(&self, timeout: time::Duration) -> Self;
+    async fn spawn_with_timeout(&self, timeout: time::Duration) -> Self::SubContext;
 
     /// handle a future
     ///
@@ -119,16 +121,18 @@ pub trait Context: Clone + Send + Sync {
 }
 
 #[async_trait::async_trait]
-impl<T: Context> Context for &T {
+impl<T: Context<SubContext = T>> Context for &T {
+    type SubContext = T;
+
     fn timer(&self) -> Timer {
         (*self).timer()
     }
 
-    async fn spawn(&self) -> Self {
-        panic!("BUG: cannot spawn sub-context from reference")
+    async fn spawn(&self) -> Self::SubContext {
+        (*self).spawn().await
     }
 
-    async fn spawn_with_timeout(&self, _: Duration) -> Self {
-        panic!("BUG: cannot spawn sub-context from reference")
+    async fn spawn_with_timeout(&self, timeout: Duration) -> Self::SubContext {
+        (*self).spawn_with_timeout(timeout).await
     }
 }

@@ -38,6 +38,8 @@ impl Default for Inner {
 
 #[async_trait::async_trait]
 impl Context for Timer {
+    type SubContext = Self;
+    
     fn timer(&self) -> Timer {
         (*self).clone()
     }
