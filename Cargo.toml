@@ -2,6 +2,11 @@
 name = "async-context"
 version = "0.1.0"
 edition = "2021"
+description = "context handle async future timeout or cancel"
+authors = ["caojen <caojen@gmail.com>"]
+resolver = "2"
+keywords = ["context", "async"]
+license = "MIT"
 
 [dependencies]
 async-trait = { version = "0.1" }
