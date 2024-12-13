@@ -2,6 +2,7 @@ use std::future::Future;
 use std::pin::{Pin, pin};
 use std::sync::Arc;
 use std::task::Poll;
+use log::error;
 use tokio::{sync, time};
 use tokio::sync::RwLock;
 use tokio::time::Sleep;
@@ -169,19 +170,23 @@ impl Timer {
     }
 }
 
-struct Task<'a, Output, Fut>
+struct Task<Output, Fut, CErr, CFut>
 where
-    Fut: Future<Output = Output> + Send + 'a,
+    Fut: Future<Output = Output> + Send,
+    CErr: ::std::error::Error,
+    CFut: Future<Output = Result<(), CErr>> + Send,
 {
     // fut: Pin<Box<dyn Future<Output = Output> + Send + Sync + 'a>>,
     fut: Pin<Box<Fut>>,
     sleep: Option<Pin<Box<Sleep>>>,
-    cancel_receiver: Pin<Box<dyn Future<Output = Result<(), sync::broadcast::error::RecvError>> + Send + Sync + 'a>>,
+    cancel_receiver: Pin<Box<CFut>>,
 }
 
-impl<'a, Output, Fut> Future for Task<'a, Output, Fut>
+impl<Output, Fut, CErr, CFut> Future for Task<Output, Fut, CErr, CFut>
 where
-    Fut: Future<Output = Output> + Send + 'a,
+    Fut: Future<Output = Output> + Send,
+    CErr: std::error::Error,
+    CFut: Future<Output = Result<(), CErr>> + Send,
 {
     type Output = crate::Result<Output>;
 
@@ -196,7 +201,7 @@ where
 
         if let Poll::Ready(cancel_result) = pin!(&mut this.cancel_receiver).poll(cx) {
             if let Err(e) = cancel_result {
-                println!("error when RecvError: {:?}", e);
+                error!("BUG: error when RecvError: {:?}", e);
             }
 
             return Poll::Ready(Err(Error::ContextCancelled));
