@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::time::Duration;
 use tokio::time;
 use crate::Timer;
 
@@ -114,5 +115,20 @@ pub trait Context: Clone + Send + Sync {
         Fut: Future<Output = Output> + Send + 'a
     {
         self.timer().handle(fut).await
+    }
+}
+
+#[async_trait::async_trait]
+impl<T: Context> Context for &T {
+    fn timer(&self) -> Timer {
+        (*self).timer()
+    }
+
+    async fn spawn(&self) -> Self {
+        panic!("BUG: cannot spawn sub-context from reference")
+    }
+
+    async fn spawn_with_timeout(&self, _: Duration) -> Self {
+        panic!("BUG: cannot spawn sub-context from reference")
     }
 }
