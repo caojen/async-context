@@ -77,6 +77,7 @@ pub use name::*;
 
 pub use async_trait::async_trait;
 
+#[doc(hidden)]
 pub struct TimeChecker(tokio::time::Instant);
 
 impl Default for TimeChecker {
