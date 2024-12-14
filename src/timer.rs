@@ -7,6 +7,8 @@ use tokio::{sync, time};
 use tokio::sync::RwLock;
 use tokio::time::Sleep;
 use crate::{Context, Error};
+#[cfg(feature = "name")]
+use crate::name::Name;
 
 /// The [`Timer`] structure is the default [`Context`].
 #[derive(Debug, Clone, Default)]
@@ -16,6 +18,8 @@ pub struct Timer {
 
 #[derive(Debug)]
 struct Inner {
+    #[cfg(feature = "name")]
+    name: Name,
     expire_at: Option<time::Instant>,
     cancelled: bool,
     cancelled_sender: sync::broadcast::Sender<()>,
@@ -28,6 +32,8 @@ impl Default for Inner {
         let (sender, receiver) = sync::broadcast::channel(32);
 
         Self {
+            #[cfg(feature = "name")]
+            name: Name::default(),
             expire_at: None,
             cancelled: false,
             cancelled_sender: sender,
@@ -43,6 +49,11 @@ impl Context for Timer {
     
     fn timer(&self) -> Timer {
         (*self).clone()
+    }
+
+    #[cfg(feature = "name")]
+    async fn name(&self) -> Name {
+        self.inner.read().await.name
     }
 
     async fn deadline(&self) -> Option<time::Instant> {

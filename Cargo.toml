@@ -15,12 +15,14 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 actix-web-from-request = [ "actix-web" ]
+name = [ "rand" ]
 
 [dependencies]
 async-trait = { version = "0.1" }
 tokio = { version = "1", features = ["sync", "time"] }
 log = { version = "0.4" }
 actix-web = { version = "4", features = ["rustls"], optional = true }
+rand = { version = "0.8", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }

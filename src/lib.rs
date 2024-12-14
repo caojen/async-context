@@ -58,17 +58,21 @@
 //!
 //! ## Features
 //! - `actix-web-from-request`: implement actix-web::FromRequest for [`Timer`].
-//! - `name`: create a name for [`Context`].
+//! - `name`: create a name for each [`Context`].
 
 mod timer;
 mod context;
 mod error;
 mod with;
+#[cfg(feature = "name")]
+mod name;
 
 pub use timer::*;
 pub use context::*;
 pub use error::*;
 pub use with::*;
+#[cfg(feature = "name")]
+pub use name::*;
 
 pub use async_trait::async_trait;
 

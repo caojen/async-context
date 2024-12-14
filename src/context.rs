@@ -1,6 +1,8 @@
 use std::future::Future;
 use std::time::Duration;
 use tokio::time;
+#[cfg(feature = "name")]
+use crate::name::Name;
 use crate::Timer;
 
 /// The [`Context`] trait defines the required methods for `Context`.
@@ -41,6 +43,12 @@ pub trait Context: Clone + Send + Sync {
 
     /// return the basic [`Timer`].
     fn timer(&self) -> Timer;
+
+    /// return the name of this context
+    #[cfg(feature = "name")]
+    async fn name(&self) -> Name {
+        self.timer().name().await
+    }
 
     /// return the deadline [`time::Instant`] of this context.
     /// return [None] when this context doesn't have deadline.
