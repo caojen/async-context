@@ -11,7 +11,7 @@ use crate::{Context, Error};
 use crate::name::Name;
 
 /// The [`Timer`] structure is the default [`Context`].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Timer {
     inner: Arc<RwLock<Inner>>,
 }
@@ -27,13 +27,25 @@ struct Inner {
     childs: Vec<Timer>,
 }
 
-impl Default for Inner {
-    fn default() -> Self {
+impl Inner {
+    fn new() -> Self {
         let (sender, receiver) = sync::broadcast::channel(32);
+
+        #[cfg(feature = "name")]
+        let name = Name::default();
+
+        #[cfg(feature = "tracing")]
+        {
+            #[cfg(feature = "name")]
+            tracing::trace!(context_new=name.as_u64());
+
+            #[cfg(not(feature = "name"))]
+            tracing::trace!(context_new="");
+        }
 
         Self {
             #[cfg(feature = "name")]
-            name: Name::default(),
+            name,
             expire_at: None,
             cancelled: false,
             cancelled_sender: sender,
@@ -85,10 +97,16 @@ impl Context for Timer {
     async fn spawn(&self) -> Self {
         let mut inner = self.inner.write().await;
 
-        let child = Inner {
-            expire_at: inner.expire_at,
-            ..Default::default()
-        };
+        let mut child = Inner::new();
+        child.expire_at = inner.expire_at;
+
+        #[cfg(feature = "tracing")]
+        {
+            #[cfg(feature = "name")]
+            tracing::trace!(context_spawn=inner.name.as_u64(), child=child.name.as_u64(), expire_at=?child.expire_at);
+            #[cfg(not(feature = "name"))]
+            tracing::trace!(context_spawn="", expire_at=?child.expire_at)
+        }
 
         let child_timer = Self::from(child);
         inner.childs.push(child_timer.clone());
@@ -110,10 +128,16 @@ impl Context for Timer {
             None
         };
 
-        let child = Inner {
-            expire_at: child_expire_at,
-            ..Default::default()
-        };
+        let mut child = Inner::new();
+        child.expire_at = child_expire_at;
+
+        #[cfg(feature = "tracing")]
+        {
+            #[cfg(feature = "name")]
+            tracing::trace!(context_spawn=inner.name.as_u64(), with_timeout=?timeout, child=child.name.as_u64(), expire_at=?child.expire_at);
+            #[cfg(not(feature = "name"))]
+            tracing::trace!(context_spawn="", with_timeout=?timeout, expire_at=?child.expire_at)
+        }
 
         let child_timer = Self::from(child);
         inner.childs.push(child_timer.clone());
@@ -156,22 +180,20 @@ impl Timer {
     /// Create a default, independent timer with no time duration limit.
     #[inline]
     pub fn background() -> Self {
-        Self::default()
+        Self::from(Inner::new())
     }
 
     /// Create a default, independent timer with no time duration limit.
     #[inline]
     pub fn todo() -> Self {
-        Self::default()
+        Self::background()
     }
 
     /// Specify the maximum execution duration for the `Timer`.
     #[inline]
     pub fn with_timeout(timeout: time::Duration) -> Self {
-        let inner = Inner {
-            expire_at: Some(time::Instant::now() + timeout),
-            ..Default::default()
-        };
+        let mut inner = Inner::new();
+        inner.expire_at = Some(time::Instant::now() + timeout);
 
         Self::from(inner)
     }
@@ -237,5 +259,18 @@ impl actix_web::FromRequest for Timer {
         Box::pin(async {
             Ok(Timer::background())
         })
+    }
+}
+
+impl Drop for Inner {
+    fn drop(&mut self) {
+        #[cfg(feature = "tracing")]
+        {
+            #[cfg(feature = "name")]
+            tracing::trace!(context_drop=self.name.as_u64(), cancelled=self.cancelled, timeout=?self.expire_at);
+
+            #[cfg(not(feature = "name"))]
+            tracing::trace!(context_drop="", cancelled=self.cancelled, timeout=?self.expire_at);
+        }
     }
 }

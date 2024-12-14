@@ -59,6 +59,7 @@
 //! ## Features
 //! - `actix-web-from-request`: implement actix-web::FromRequest for [`Timer`].
 //! - `name`: create a name for each [`Context`].
+//! - `tracing`: enable `tracing` and do `tracing::trace!(...)` logging.
 
 mod timer;
 mod context;
