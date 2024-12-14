@@ -216,3 +216,15 @@ where
         }
     }
 }
+
+#[cfg(feature = "actix-web-from-request")]
+impl actix_web::FromRequest for Timer {
+    type Error = actix_web::Error;
+    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
+
+    fn from_request(_: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
+        Box::pin(async {
+            Ok(Timer::background())
+        })
+    }
+}

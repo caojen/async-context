@@ -20,5 +20,5 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - name: Build
+      - name: Test
         run: cargo test

@@ -1,6 +1,6 @@
 [package]
 name = "context-async"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "context handle async future timeout or cancel"
 authors = ["caojen <netid.caojen@gmail.com>"]
@@ -9,10 +9,18 @@ keywords = ["context", "async"]
 license = "MIT"
 repository = "https://github.com/caojen/async-context"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[features]
+actix-web-from-request = [ "actix-web" ]
+
 [dependencies]
 async-trait = { version = "0.1" }
 tokio = { version = "1", features = ["sync", "time"] }
 log = { version = "0.4" }
+actix-web = { version = "4", features = ["rustls"], optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
