@@ -198,6 +198,17 @@ impl Timer {
         Self::from(inner)
     }
 
+    /// Specify the maximum execution duration for the `Timer`, in seconds.
+    #[inline]
+    pub fn in_seconds(secs: u64) -> Self {
+        Self::with_timeout(time::Duration::from_secs(secs))
+    }
+
+    /// Specify the maximum execution duration for the `Timer`, in seconds.
+    pub fn in_milliseconds(millis: u64) -> Self {
+        Self::with_timeout(time::Duration::from_millis(millis))
+    }
+
     async fn cancel_receiver(&self) -> sync::broadcast::Receiver<()> {
         self.inner.read().await.cancelled_receiver.resubscribe()
     }
