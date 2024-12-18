@@ -14,7 +14,7 @@ Add this lib as dependencies in `Cargo.toml`.
 
 ```toml
 [dependencies]
-context-async = { version = "0.1" }
+context-async = { version = "*" }
 ```
 
 In your code, you can simple use `Timer`:
