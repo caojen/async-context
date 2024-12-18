@@ -2,8 +2,9 @@ use std::future::Future;
 use std::pin::{Pin, pin};
 use std::sync::Arc;
 use std::task::Poll;
+use std::time;
 use log::error;
-use tokio::{sync, time};
+use tokio::sync;
 use tokio::sync::RwLock;
 use tokio::time::Sleep;
 use crate::{Context, Error};
@@ -154,7 +155,8 @@ impl Context for Timer {
         }
 
         let sleep = self.deadline().await
-            .map(time::sleep_until)
+            .map(tokio::time::Instant::from_std)
+            .map(tokio::time::sleep_until)
             .map(Box::pin);
 
         let mut cancel_receiver = self.cancel_receiver().await;

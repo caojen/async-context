@@ -1,4 +1,4 @@
-use tokio::time;
+use std::time;
 use context_async::{Error, Timer, With};
 
 /// In this file, we send a HTTP GET request to https://www.example.com.

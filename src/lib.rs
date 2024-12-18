@@ -9,7 +9,7 @@
 //! to finish in 5 seconds.
 //!
 //! ```rust
-//! use tokio::time;
+//! use std::time;
 //! use context_async::{Context, Timer};
 //!
 //! async fn a_heavy_async_function(a: u8) -> bool {

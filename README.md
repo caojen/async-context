@@ -20,7 +20,7 @@ context-async = { version = "*" }
 In your code, you can simple use `Timer`:
 
 ```rust
-use tokio::time;
+use std::time;
 use context_async::{Context, Timer, Error, With};
 
 async fn a_heavy_function_or_something_else(a: u8, b: u128) -> Result<(), ()>{

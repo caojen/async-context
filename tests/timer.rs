@@ -1,4 +1,4 @@
-use tokio::time;
+use std::time;
 use context_async::{Context, Error, TimeChecker, Timer};
 
 #[tokio::test]

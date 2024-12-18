@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::time::Duration;
 use tokio::time;
 use context_async::{Context, Error, TimeChecker, Timer, With};
 
@@ -42,7 +41,7 @@ impl Context for DataContext {
         }
     }
 
-    async fn spawn_with_timeout(&self, timeout: Duration) -> Self {
+    async fn spawn_with_timeout(&self, timeout: time::Duration) -> Self {
         Self {
             timer: self.timer.spawn_with_timeout(timeout).await,
             data: self.data.clone(),

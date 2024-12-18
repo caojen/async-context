@@ -1,6 +1,5 @@
 use std::future::Future;
-use std::time::Duration;
-use tokio::time;
+use std::time;
 #[cfg(feature = "name")]
 use crate::name::Name;
 use crate::Timer;
@@ -106,6 +105,16 @@ pub trait Context: Clone + Send + Sync {
     /// see [`Self::spawn`] for more examples.
     async fn spawn_with_timeout(&self, timeout: time::Duration) -> Self::SubContext;
 
+    /// spawn a new child context, with a new timeout parameter in seconds.
+    async fn spawn_in_seconds(&self, secs: u64) -> Self::SubContext {
+        self.spawn_with_timeout(time::Duration::from_secs(secs)).await
+    }
+
+    /// spawn a new child context, with a new timeout parameter in milliseconds.
+    async fn spawn_in_milliseconds(&self, millis: u64) -> Self::SubContext {
+        self.spawn_with_timeout(time::Duration::from_millis(millis)).await
+    }
+
     /// handle a future
     ///
     /// # Examples
@@ -140,7 +149,7 @@ impl<T: Context> Context for &T {
         (*self).spawn().await
     }
 
-    async fn spawn_with_timeout(&self, timeout: Duration) -> T::SubContext {
+    async fn spawn_with_timeout(&self, timeout: time::Duration) -> T::SubContext {
         (*self).spawn_with_timeout(timeout).await
     }
 }
