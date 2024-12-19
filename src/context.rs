@@ -140,11 +140,48 @@ pub trait Context: Clone + Send + Sync {
     /// # });
     ///
     /// ```
-    async fn handle<'a, Fut, Output>(&self, fut: Fut) -> crate::Result<Output>
+    async fn handle<'a, Fut, T>(&self, fut: Fut) -> crate::Result<T>
     where
-        Fut: Future<Output = Output> + Send + 'a
+        Fut: Future<Output = T> + Send + 'a
     {
         self.timer().handle(fut).await
+    }
+
+    /// handle a future that returns Result<T, E>.
+    ///
+    /// # Note
+    /// `E` is user-defined error, which implements `From<Error>`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use context_async::{Context, Timer};
+    ///
+    /// #[derive(Debug, Clone)]
+    /// struct MyError;
+    ///
+    /// impl From<context_async::Error> for MyError {
+    ///     fn from(value: context_async::Error) -> Self {
+    ///         MyError
+    ///     }
+    /// }
+    ///
+    /// async fn my_func() -> Result<u8, MyError> {
+    ///     Ok(42)
+    /// }
+    ///
+    /// # tokio_test::block_on(async {
+    /// let ctx = Timer::background();
+    /// let task = my_func();
+    /// let _ = ctx.handle_result(task).await;
+    /// # });
+    /// ```
+    async fn handle_result<'a, Fut, T, E>(&self, fut: Fut) -> Result<T, E>
+    where
+        Fut: Future<Output = Result<T, E>> + Send + 'a,
+        E: From<Error>,
+    {
+        self.timer().handle(fut).await?
     }
 }
 

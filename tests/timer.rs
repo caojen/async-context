@@ -166,3 +166,27 @@ async fn timer_partial_cancel() {
 
     assert!(tc.not_exceed(time::Duration::from_millis(3300)));
 }
+
+#[tokio::test]
+async fn timer_handle_result() {
+    let timer = Timer::background();
+
+    mod def {
+        #[derive(Debug, Clone)]
+        pub struct MyError;
+
+        impl From<context_async::Error> for MyError {
+            fn from(_: context_async::Error) -> Self {
+                MyError
+            }
+        }
+    }
+
+    async fn my_func() -> Result<u8, MyError> {
+        Ok(1)
+    }
+
+    use def::*;
+
+    timer.handle_result(my_func()).await.unwrap();
+}
