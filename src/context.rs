@@ -2,7 +2,7 @@ use std::future::Future;
 use std::time;
 #[cfg(feature = "name")]
 use crate::name::Name;
-use crate::Timer;
+use crate::{Error, Timer};
 
 /// The [`Context`] trait defines the required methods for `Context`.
 /// It can define a duration, be cancellable, and immediately cancel
@@ -68,6 +68,17 @@ pub trait Context: Clone + Send + Sync {
     /// check whether this context is timeout or not.
     async fn is_timeout(&self) -> bool {
         self.timer().is_timeout().await
+    }
+
+    /// check whether there is an [`Error`] in context.
+    async fn error(&self) -> Option<Error> {
+        if self.is_cancelled().await {
+            Some(Error::ContextCancelled)
+        } else if self.is_timeout().await {
+            Some(Error::ContextTimeout)
+        } else {
+            None
+        }
     }
 
     /// spawn a new child context.

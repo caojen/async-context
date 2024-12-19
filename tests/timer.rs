@@ -68,6 +68,7 @@ async fn test_timer_cancel() {
     assert!(child_2.is_cancelled().await);
     assert!(child_2_1_1.is_cancelled().await);
     assert!(child_2_1_1.is_cancelled().await);
+    assert_eq!(child_2_1_1.error().await, Some(Error::ContextCancelled));
 }
 
 #[tokio::test]
@@ -96,6 +97,8 @@ async fn test_timer_timeout() {
     tokio::time::sleep(time::Duration::from_secs(4)).await;
     assert!(timer.is_timeout().await);
     assert!(child.is_timeout().await);
+    assert_eq!(timer.error().await, Some(Error::ContextTimeout));
+    assert_eq!(child.error().await, Some(Error::ContextTimeout));
 }
 
 #[tokio::test]
