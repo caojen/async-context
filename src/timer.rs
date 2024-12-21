@@ -152,6 +152,8 @@ impl Context for Timer {
     {
         if self.is_cancelled().await {
             return Err(Error::ContextCancelled);
+        } else if self.is_timeout().await {
+            return Err(Error::ContextTimeout);
         }
 
         let sleep = self.deadline().await
@@ -252,14 +254,8 @@ where
             return Poll::Ready(Err(Error::ContextCancelled));
         }
 
-        match this.fut.as_mut().poll(cx) {
-            Poll::Pending => {
-                Poll::Pending
-            },
-            Poll::Ready(output) => {
-                Poll::Ready(Ok(output))
-            },
-        }
+        this.fut.as_mut().poll(cx)
+            .map(|r| Ok(r))
     }
 }
 
