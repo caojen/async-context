@@ -75,6 +75,7 @@ pub use with::*;
 #[cfg(feature = "name")]
 pub use name::*;
 
+/// Re-export [`async_trait`] crate.
 pub use async_trait::async_trait;
 
 #[doc(hidden)]
